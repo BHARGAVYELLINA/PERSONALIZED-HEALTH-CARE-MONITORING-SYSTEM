@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Health Progress</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background: linear-gradient(to bottom, #111111, #444444, #777777);
+            margin: 1px;
+            padding: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .chart-container {
+            width: calc(50% - 40px);
+            margin: 10px;
+            box-sizing: border-box;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        @media (max-width: 600px) {
+            .chart-container {
+                width: calc(100% - 40px);
+            }
+        }
+
+        .chart-labels {
+            color: rgba(255, 255, 255, 1);
+        }
+    </style>
+</head>
+<body>
+    <div class="chart-container">
+        <canvas id="stepsChart" width="400" height="200"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="sleepChart" width="400" height="200"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="caloriesChart" width="400" height="200"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="caloriesBurnedChart" width="400" height="200"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="exercisesChart" width="400" height="200"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="screenTimeChart" width="400" height="200"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="fastingperiod" width="400" height="200"></canvas>
+    </div>
+    <div class="chart-container">
+        <canvas id="eatingperiod" width="400" height="200"></canvas>
+    </div>
+
+    <script>
+        function fetchData(url) {
+            return fetch(url)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                });
+        }
+
+        fetchData('data.json')
+            .then(data => {
+                renderCharts(data);
+            })
+            .catch(() => {
+                fetchData('/get_data')
+                    .then(data => {
+                        renderCharts(data);
+                    });
+            });
+
+        function renderCharts(data) {
+            renderLineChart('stepsChart', 'Steps', data.dates, data.steps, 'rgba(255, 99, 132, 0.2)', 'rgba(255, 99, 132, 1)');
+            renderLineChart('sleepChart', 'Sleep Pattern', data.dates, data.sleepHours, 'rgba(75, 192, 192, 0.2)', 'rgba(75, 192, 192, 1)');
+            renderBarChart('caloriesChart', 'Calories Intake', data.dates, data.calories, 'rgba(26, 26, 26, 0.2)', 'rgba(26, 26, 26, 1)');
+            renderBarChart('caloriesBurnedChart', 'Calories Burned', data.dates, data.caloriesBurned, 'rgba(0, 153, 51, 0.2)', 'rgba(0, 153, 51, 1)');
+            renderPieChart('exercisesChart', 'Exercises', data.exercisesData);
+            renderBarChart('screenTimeChart', 'Screen Time', data.dates, data.screenTime, 'rgba(153, 102, 255, 0.2)', 'rgba(153, 102, 255, 1)');
+            renderBarChart('fastingperiod', 'Fasting Period', data.dates, data.fasting_period, 'rgba(255, 159, 64, 0.2)', 'rgba(255, 159, 64, 1)');
+            renderBarChart('eatingperiod', 'Eating Period', data.dates, data.eating_period, 'rgba(255, 206, 86, 0.2)', 'rgba(255, 206, 86, 1)');
+        }
+
+        function renderLineChart(canvasId, label, labels, values, backgroundColor, borderColor) {
+            var ctx = document.getElementById(canvasId).getContext('2d');
+            var chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: values,
+                        backgroundColor: backgroundColor,
+                        borderColor: borderColor,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                    },
+                    legend: {
+                        labels: {
+                            fontColor: 'rgba(255, 255, 255, 1)'
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderBarChart(canvasId, label, labels, values, backgroundColor, borderColor) {
+            var ctx = document.getElementById(canvasId).getContext('2d');
+            var chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: values,
+                        backgroundColor: backgroundColor,
+                        borderColor: borderColor,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true
+                            }
+                        }]
+                    },
+                    legend: {
+                        labels: {
+                            fontColor: 'rgba(255, 255, 255, 1)'
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderPieChart(canvasId, label, exercisesData) {
+            var ctx = document.getElementById(canvasId).getContext('2d');
+            var chart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(exercisesData),
+                    datasets: [{
+                        label: label,
+                        data: Object.values(exercisesData),
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(255, 206, 86, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(153, 102, 255, 0.2)',
+                            'rgba(255, 159, 64, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)',
+                            'rgba(255, 159, 64, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    legend: {
+                        display: true,
+                        position: 'right',
+                        labels: {
+                            fontColor: 'rgba(255, 255, 255, 1)'
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

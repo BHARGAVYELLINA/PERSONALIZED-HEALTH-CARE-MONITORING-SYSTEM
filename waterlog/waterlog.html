@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Water Tracker</title>
+  <style>
+    /* Your CSS styles */
+    /* CSS code */
+    @import url('https://fonts.googleapis.com/css?family=Montserrat:400,600&display=swap');
+
+    :root {
+      --border-color: #144fc6;
+      --fill-color: #6ab3f8;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-image: url('assets/bgimg.jpg'); /* Background image */
+      background-size: cover;
+      color: #fff;
+      font-family: 'Montserrat', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 40px;
+    }
+
+    h1 {
+      margin: 10px 0 0;
+    }
+
+    h3 {
+      font-weight: 400;
+      margin: 10px 0;
+    }
+
+    .cup {
+      background-color: #fff;
+      border: 4px solid #144fc6; /* Dark blue border */
+      color: #144fc6; /* Dark blue text color */
+      border-radius: 0 0 40px 40px;
+      height: 330px; /* Fixed height */
+      width: 150px;
+      margin: 30px 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; /* Hide overflow to keep static size */
+      position: relative; /* Position for the water level */
+    }
+
+    .cup:before {
+      content: ''; /* Pseudo-element to represent water level */
+      background-color: #6ab3f8; /* Light blue color */
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 0; /* Initially no water */
+      transition: height 0.3s ease; /* Smooth transition for water level */
+    }
+
+    .cup.full:before {
+      height: 100%; /* Full water level */
+    }
+
+    .cup.cup-small {
+      height: 95px;
+      width: 50px;
+      border-radius: 0 0 15px 15px;
+      background-color: rgba(255, 255, 255, 0.9);
+      cursor: pointer;
+      font-size: 14px;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      margin: 5px;
+      transition: 0.3s ease;
+    }
+
+    .cup.cup-small.full {
+      background-color: var(--fill-color);
+      color: #fff;
+    }
+
+    .cups {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      width: 280px;
+    }
+
+    .remained {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      flex: 1;
+      transition: 0.3s ease;
+    }
+
+    .remained span {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .remained small {
+      font-size: 12px;
+    }
+
+    .percentage {
+      background-color: var(--fill-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 30px;
+      height: 0;
+      transition: 0.3s ease;
+    }
+
+    .text {
+      text-align: center;
+      margin: 0 0 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Water Tracker</h1>
+  <div class="remained" id="remained">
+    <span id="liters">2L</span>
+    <small>Remained</small>
+  </div>
+  <div class="percentage" id="percentage">0%</div>
+  <script>
+    let reminderInterval;
+    let consumedLiters = 0; // Track cumulative consumption
+
+    // Function to start the reminder
+    function startReminder() {
+        reminderInterval = setInterval(() => {
+            const currentTime = new Date();
+            if (isDayChanged(currentTime)) {
+                stopReminder(); // Stop reminder if day has changed
+                saveDailyConsumption(); // Save daily consumption data
+                return;
+            }
+            alert("Don't forget to drink water and complete your goal!");
+        }, 60000); // Remind every 1 minute (adjust as needed)
+    }
+
+    function isDayChanged(currentTime) {
+    const storedDate = localStorage.getItem('lastDate'); // Assuming lastDate is stored
+
+    if (!storedDate) {
+        localStorage.setItem('lastDate', currentTime.toISOString().slice(0, 10)); // Store current date
+        return false;
+    } else {
+        const storedDay = new Date(storedDate).getDate(); // Get the day part of the stored date
+        const currentDay = currentTime.getDate(); // Get the day part of the current date
+
+        if (storedDay !== currentDay) {
+            localStorage.setItem('lastDate', currentTime.toISOString().slice(0, 10)); // Store current date
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+
+    function stopReminder() {
+        clearInterval(reminderInterval);
+    }
+
+    let goal;
+    do {
+        goal = prompt("Enter your water consumption goal (in liters, max 5):");
+        if (goal === null) {
+            alert("You have canceled the input. Water tracker cannot start without a goal.");
+            break;
+        } else if (isNaN(goal)) {
+            alert("Invalid input! Please enter a valid number.");
+        } else if (parseFloat(goal) > 5) {
+            alert("Exceeding 5 liters can be dangerous. Please enter a value less than or equal to 5.");
+        }
+    } while (isNaN(goal) || parseFloat(goal) > 5);
+
+    if (goal !== null) {
+        const goalLiters = parseFloat(goal);
+        startWaterTracking(goalLiters);
+        startReminder();
+    }
+
+    function startWaterTracking(goalLiters) {
+        const cupsContainer = document.createElement('div');
+        cupsContainer.classList.add('cups');
+        document.body.appendChild(cupsContainer);
+
+        for (let i = 0; i < Math.ceil(goalLiters / 0.25); i++) {
+            const cup = document.createElement('div');
+            cup.classList.add('cup', 'cup-small');
+            cup.innerHTML = '250ml';
+            cupsContainer.appendChild(cup);
+        }
+
+        const smallCups = document.querySelectorAll('.cup-small');
+        const listers = document.getElementById('liters');
+        const percentage = document.getElementById('percentage');
+        const remained = document.getElementById('remained');
+
+        updateBigCup();
+
+        smallCups.forEach((cup, idx) => {
+            cup.addEventListener('click', () => highlightCups(idx));
+        });
+
+        function highlightCups(idx) {
+            if (smallCups[idx].classList.contains('full') && !smallCups[idx].nextElementSibling.classList.contains('full')) {
+                idx--;
+            }
+
+            smallCups.forEach((cup, idx2) => {
+                if (idx2 <= idx) {
+                    cup.classList.add('full');
+                } else {
+                    cup.classList.remove('full');
+                }
+            });
+
+            updateBigCup();
+        }
+
+        function updateBigCup() {
+                const fullCups = document.querySelectorAll('.cup-small.full').length;
+                const totalCups = smallCups.length;
+
+                if (fullCups === 0) {
+                    percentage.style.visibility = 'hidden';
+                    percentage.style.height = 0;
+                } else {
+                    percentage.style.visibility = 'visible';
+                    percentage.style.height = `${(fullCups / totalCups) * 330}px`;
+                    percentage.innerText = `${(fullCups / totalCups * 100).toFixed(2)}%`; // Display 2 digits after decimal
+                }
+
+                if (fullCups === totalCups) {
+                    remained.style.visibility = 'hidden';
+                    remained.style.height = 0;
+                    stopReminder();
+                    saveDailyConsumption();
+                } else {
+                    remained.style.visibility = 'visible';
+                    const remainingLiters = goalLiters - (250 * fullCups / 1000);
+                    listers.innerText = `${remainingLiters > 0 ? remainingLiters.toFixed(2) : 0}L`;
+                }
+        }
+
+        function saveWaterConsumption(userId, goal, consumedLiters, percentageReached, date, time) {
+            fetch('/consumeWater', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    userId: userId,
+                    goal: goal,
+                    consumedLiters: consumedLiters,
+                    percentageReached: percentageReached,
+                    date: date,
+                    time: time
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Water consumption data saved successfully');
+                } else {
+                    console.error('Error saving water consumption data');
+                }
+            })
+            .catch(error => {
+                console.error('Error saving water consumption data:', error);
+            });
+        }
+
+        function saveDailyConsumption() {
+            const now = new Date();
+            const date = now.toISOString().slice(0, 10);
+            const time = now.toTimeString().slice(0, 8).replace(/:/g, '');
+            consumedLiters = 0; // Reset consumedLiters
+            smallCups.forEach(cup => {
+                if (cup.classList.contains('full')) {
+                    consumedLiters += 0.25; // Add 0.25 liters for each full cup
+                }
+            });
+            const percentageReached = (consumedLiters / parseFloat(goal)).toFixed(2)*100;
+            saveWaterConsumption('123', goal, consumedLiters, percentageReached, date, time);
+        }
+    }
+  </script>
+</body>
+</html>

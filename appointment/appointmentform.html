@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Appointment Booking</title>
+    <link rel="stylesheet" href = "/assets/formfill.css">
+</head>
+<body>
+    <h1>Emergency Appointment Booking</h1>
+
+    <form id="formM" onsubmit="validateForm(event)">>
+        <label for="fullName">Full Name:</label>
+        <input type="text" id="fullName" name="fullName"><br>
+
+        <label for="contactInfo">Contact Information:</label>
+        <input type="text" id="contactInfo" name="contactInfo"><br>
+
+        <label for="dateOfBirth">Date of Birth:</label>
+        <input type="date" id="dateOfBirth" name="dateOfBirth"><br>
+
+        <label for="emergencyContact">Emergency Contact:</label>
+        <input type="text" id="emergencyContact" name="emergencyContact"><br>
+
+        <label for="reasonForVisit">Reason for Meet:</label>
+        <textarea id="reasonForVisit" name="reasonForVisit" rows="4" cols="50" required placeholder="Max. 150 characters"></textarea><br>
+
+        <label for="medicalHistory">Medical History:</label>
+        <textarea id="medicalHistory" name="medicalHistory" rows="4" cols="50" placeholder="Max. 150 characters" required></textarea><br>
+
+
+        <label for="preferredDoctor">Preferred Doctor:</label>
+        <input type="text" id="preferredDoctor" name="preferredDoctor"></input><br>
+
+        <label for="preferredDateTime">Preferred Date and Time:</label>
+        <input type="datetime-local" id="preferredDateTime" name="preferredDateTime" required><br>
+
+        <label for="urgencyLevel">Urgency Level:</label>
+        <select id="urgencyLevel" name="urgencyLevel">
+            <option value="emergency">Emergency</option>
+            <option value="urgent">Urgent</option>
+            <option value="routine">Routine</option>
+        </select><br>
+
+        <input type="submit" value="Submit Appointment Request">
+    </form>
+</body>
+    <script>
+        window.onload = function() {
+            localStorage.setItem('userId', 123);
+            localStorage.setItem('doctorName', 'joel');
+            localStorage.setItem('doctorId', 1);
+            getUserInfo();
+        }
+
+        function formatDateToYYYYMMDD(isoDateString) {
+            const dateObject = new Date(isoDateString);
+            const year = dateObject.getFullYear();
+            const month = String(dateObject.getMonth() + 1).padStart(2, '0');
+            const day = String(dateObject.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function getUserInfo() {
+            const storedDoctorName = localStorage.getItem('doctorName');
+            const userId = localStorage.getItem('userId');
+
+            document.getElementById("preferredDoctor").value = storedDoctorName;
+
+            fetch('/getUserData', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ user_id: localStorage.getItem('userId') })
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Failed to fetch user data');
+                }
+            })
+            .then(userdata => {
+                document.getElementById("fullName").value = userdata[0]['user_name'];
+                document.getElementById("contactInfo").value = userdata[0]['contact'];
+                document.getElementById("dateOfBirth").value = formatDateToYYYYMMDD(userdata[0]['dob']);
+            })
+            .catch(error => {
+                console.error('Error retrieving user data:', error);
+            });
+        }
+
+        function validateForm(event) {
+            event.preventDefault();
+            var emergencyContact = document.getElementById("emergencyContact").value;
+            if (!/^\d{10}$/.test(emergencyContact)) {
+                alert("Emergency contact must be a 10-digit number!");
+                return;
+            }
+
+            var reasonForVisit = document.getElementById("reasonForVisit").value;
+            if (reasonForVisit.length > 150) {
+                alert("Reason for visit should not exceed 150 characters!");
+                return; 
+            }
+
+            var medicalHistory = document.getElementById("medicalHistory").value;
+            if (medicalHistory.length > 150) {
+                alert("Medical history should not exceed 150 characters!");
+                return; 
+            }
+
+            var preferredDoctor = document.getElementById("preferredDoctor").value;
+            if (preferredDoctor === "") {
+                alert("Please select a preferred doctor!");
+                return;
+            }
+
+            var preferredDateTime = document.getElementById("preferredDateTime").value;
+
+            if(!preferredDateTime){
+                return;
+            }
+            var now = new Date();
+            var selectedDateTime = new Date(preferredDateTime);
+            if (selectedDateTime < now) {
+                alert("Preferred date and time cannot be in the past!");
+                return;
+            }
+
+            const formData = {
+                fullName: document.getElementById('fullName').value,
+                contactInfo: document.getElementById('contactInfo').value,
+                dateOfBirth: document.getElementById('dateOfBirth').value,
+                emergencyContact: document.getElementById('emergencyContact').value,
+                reasonForVisit: document.getElementById('reasonForVisit').value,
+                medicalHistory: document.getElementById('medicalHistory').value,
+                preferredDoctor: document.getElementById('preferredDoctor').value,
+                preferredDateTime: document.getElementById('preferredDateTime').value,
+                urgencyLevel: document.getElementById('urgencyLevel').value
+            };
+
+            fetch('/appointmentformfillstoreData',{
+                method:'POST',
+                headers:{
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({formData: formData, doctorId: localStorage.getItem('doctorId'), userId: localStorage.getItem('userId')})
+            })
+            .then(response=>{
+                if(response.ok){
+                    return response.json();
+                }
+            })
+            .catch(error=>{
+                console.error('error retrieving doctors', error);
+            });
+
+            alert("Appointment submitted succesfully");
+
+            fetch('/acknowledge')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch ack content');
+                }
+                return response.text();
+            })
+            .then(html => {
+                document.write(html);
+            })
+            .catch(error => {
+                console.error('Error fetching ack content:', error);
+                window.close();
+            });
+        }
+    </script>
+</html>

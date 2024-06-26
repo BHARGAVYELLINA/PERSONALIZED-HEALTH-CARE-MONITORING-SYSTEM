@@ -1,0 +1,124 @@
+/* Global styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f06e6e;
+    padding: 20px;
+    color: #333; /* Default text color */
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Increased shadow */
+}
+
+h1 {
+    font-size: 28px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+label {
+    font-weight: bold;
+}
+
+/* Form and input styles */
+input[type="text"],
+input[type="email"],
+input[type="date"],
+select,
+button {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+button {
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+/* List of doctors */
+ul.doctor-list {
+    list-style: none;
+    padding: 0;
+}
+
+ul.doctor-list li {
+    padding: 20px;
+    border-bottom: 1px solid #ddd;
+    transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+}
+
+ul.doctor-list li:last-child {
+    border-bottom: none;
+}
+
+ul.doctor-list li:hover {
+    background-color: #f9f9f9;
+    cursor: pointer;
+}
+
+ul.doctor-list li img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-right: 20px;
+    object-fit: cover;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+ul.doctor-list li .doctor-info {
+    flex-grow: 1;
+}
+
+ul.doctor-list li .doctor-name {
+    font-weight: bold;
+    font-size: 18px;
+}
+
+ul.doctor-list li .specialty {
+    color: #666;
+    font-size: 16px;
+}
+
+ul.doctor-list li .availability {
+    color: #888;
+    font-size: 14px;
+}
+
+/* Appointment form */
+.appointment-form {
+    display: none;
+    margin-top: 20px;
+}
+
+.appointment-form h2 {
+    font-size: 24px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.appointment-form form {
+    display: flex;
+    flex-direction: column;
+}
+
+.appointment-form label {
+    margin-bottom: 12px;
+}

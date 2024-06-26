@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Doctor Specialization</title>
+    <link rel="stylesheet" href="/assets/appointmentindex.css">
+</head>
+<body>
+    <h1>Select Doctor Specialization</h1>
+    <label for="specializationSelect">Choose a Doctor Specialization:</label>
+    <select id="specializationSelect">
+        <option value="">Select Specialization...</option>
+        <option value="general">General (GENERAL CHECKUP)</option>
+        <option value="pediatrician">Pediatrician (FOR CHILDREN BELOW 14)</option>
+        <option value="dermatologist">Dermatologist (SKIN)</option>
+        <option value="psychiatrist">Psychiatrist (MENTAL HEALTH)</option>
+        <option value="otolaryngologist">Otolaryngologist (ENT)</option>
+        <option value="gynecologist">Gynecologist (FOR WOMEN)</option>
+    </select>
+    <div id="doctorListContainer">
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdown = document.getElementById('specializationSelect');
+            dropdown.addEventListener('change', function(event) {
+                const doctorListContainer = document.getElementById('doctorListContainer');
+                doctorListContainer.innerHTML = "";
+                const selectedOption = event.target.value;
+                if (true) {
+                    fetch('/getDoctors',{
+                        method:'POST',
+                        headers:{
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({specialization: 'general'})
+                    })
+                    .then(response=>{
+                        if(response.ok){
+                            return response.json();
+                        }
+                    })
+                    .then(doctors=>{
+                        const ulElement = document.createElement('ul');
+                        ulElement.classList.add('doctor-list');
+                        doctorListContainer.appendChild(ulElement);
+                        doctors.forEach(doctor => {
+                            const listItem = document.createElement('li');
+                            listItem.textContent = `Name: ${doctor.doctor_name}, Speciality: ${doctor.speciality}, Location: ${doctor.location}, Rating: ${doctor.rating.toFixed(1)}/5, Hourly Fee: ${doctor.hourly_fee}`;
+                            listItem.addEventListener('click', () => {
+                                showAppointmentForm('joel', 1);
+                            });
+                            ulElement.appendChild(listItem);
+                        });
+                    })
+                    .catch(error=>{
+                        console.error('Error retrieving doctors:', error);
+                    });
+                } else {    
+                    console.log('Please select a specialization');
+                }
+            });
+        });
+
+        function showAppointmentForm(doctorName, doctorId) {
+            localStorage.setItem('doctorName', doctorName);
+            localStorage.setItem('doctorId', doctorId);
+            const newWindowUrl = `/appointmentform`;
+            const newWindow = window.open(newWindowUrl, '_blank');
+            fetch(newWindowUrl)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch form content');
+                    }
+                    return response.text();
+                })
+                .then(html => {
+                    newWindow.document.open();
+                    newWindow.document.write(html);
+                    newWindow.document.close();
+                })
+                .catch(error => {
+                    console.error('Error fetching and writing form content:', error);
+                    newWindow.close();
+                });
+        }
+    </script>
+</body>
+</html>

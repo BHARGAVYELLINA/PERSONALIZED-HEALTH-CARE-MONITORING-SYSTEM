@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Intermittent Fasting Tracker</title>
+  <link rel="stylesheet" href="/assets/fasting.css">
+</head>
+
+<body>
+  <h1>Intermittent Fasting Tracker</h1>
+  <form id="fastingForm" action="/fasting" method="post">
+    <label for="startDate">Start Date:</label>
+    <input type="date" id="startDate" name="startDate"><br>
+    <span class="error" id="startDateError"></span><br>
+
+    <label for="startTime">Start Time:</label>
+    <input type="time" id="startTime" name="startTime"><br>
+    <span class="error" id="startTimeError"></span><br>
+
+    <label for="endDate">End Date:</label>
+    <input type="date" id="endDate" name="endDate"><br>
+    <span class="error" id="endDateError"></span><br>
+
+    <label for="endTime">End Time:</label>
+    <input type="time" id="endTime" name="endTime"><br>
+    <span class="error" id="endTimeError"></span><br>
+
+    <span class="error" id="durationError"></span><br>
+    <button type="submit">Log Fasting Period</button>
+  </form>
+
+  <div class="container"></div>
+
+  <script>
+    const fastingForm = document.getElementById('fastingForm');
+    const startDateInput = document.getElementById('startDate');
+    const startTimeInput = document.getElementById('startTime');
+    const endDateInput = document.getElementById('endDate');
+    const endTimeInput = document.getElementById('endTime');
+
+    function isFutureDate(input) {
+      const now = new Date();
+      const selectedDate = new Date(input.value);
+      return selectedDate > now;
+    }
+
+    function isFutureTime(input) {
+      const selectedTime = new Date().setHours(input.value.split(':')[0], input.value.split(':')[1]);
+      return selectedTime > Date.now();
+    }
+
+    function isValidDate(dateString) {
+      const regEx = /^\d{4}-\d{2}-\d{2}$/;
+      if (!dateString.match(regEx)) return false;
+      const d = new Date(dateString);
+      if (!d.getTime() && d.getTime() !== 0) return false;
+      return d.toISOString().slice(0, 10) === dateString;
+    }
+
+    function isValidTime(timeString) {
+      const regEx = /^([01]\d|2[0-3]):([0-5]\d)$/;
+      return regEx.test(timeString);
+    }
+
+    function calculateDuration(startDateTime, endDateTime) {
+      const startTimestamp = new Date(startDateTime).getTime();
+      const endTimestamp = new Date(endDateTime).getTime();
+      const durationMs = endTimestamp - startTimestamp;
+      const durationHours = durationMs / (1000 * 60 * 60);
+      const durationError = document.getElementById('durationError');
+      if(durationHours < 0) {
+        durationError.textContent = 'End date/time must be after start date/time.';
+        return false;
+      }
+      return true;
+    }
+
+    fastingForm.addEventListener('submit', function(event) {
+      const startDateError = document.getElementById('startDateError');
+      const startTimeError = document.getElementById('startTimeError');
+      const endDateError = document.getElementById('endDateError');
+      const endTimeError = document.getElementById('endTimeError');
+      const durationError = document.getElementById('durationError');
+
+      startDateError.textContent = '';
+      startTimeError.textContent = '';
+      endDateError.textContent = '';
+      endTimeError.textContent = '';
+      durationError.textContent = '';
+
+      if (isFutureDate(startDateInput)) {
+        event.preventDefault();
+        startDateError.textContent = 'Please select a date in the past or today.';
+      }
+
+      if (isFutureDate(endDateInput)) {
+        event.preventDefault();
+        endDateError.textContent = 'Please select a date in the past or today.';
+      }
+
+      if (isFutureTime(startTimeInput)) {
+        event.preventDefault();
+        startTimeError.textContent = 'Please select a time in the past or now.';
+      }
+
+      if (isFutureTime(endTimeInput)) {
+        event.preventDefault();
+        endTimeError.textContent = 'Please select a time in the past or now.';
+      }
+
+      if (!isValidDate(startDateInput.value)) {
+        event.preventDefault();
+        startDateError.textContent = 'Please enter a valid start date.';
+      }
+
+      if (!isValidTime(startTimeInput.value)) {
+        event.preventDefault();
+        startTimeError.textContent = 'Please enter a valid start time.';
+      }
+
+      if (!isValidDate(endDateInput.value)) {
+        event.preventDefault();
+        endDateError.textContent = 'Please enter a valid end date.';
+      }
+
+      if (!isValidTime(endTimeInput.value)) {
+        event.preventDefault();
+        endTimeError.textContent = 'Please enter a valid end time.';
+      }
+
+      const startDateTime = startDateInput.value + 'T' + startTimeInput.value;
+      const endDateTime = endDateInput.value + 'T' + endTimeInput.value;
+
+      if (!calculateDuration(startDateTime, endDateTime)) {
+        event.preventDefault();
+      }
+    });
+  </script>
+</body>
+</html>

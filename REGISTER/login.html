@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta email="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Login</title>
+    <link rel="stylesheet" href="/assets/register.css">
+</head>
+<body>
+    <section class="boxl">
+        <div class="design">
+            <div></div>
+            <div></div>
+            <div></div>
+            <div></div>
+        </div>
+        <div class="form">
+            <h2>User Login</h2>
+            <form id="loginForm" action="/login" method="POST" onsubmit="return validateLoginForm()">
+                <input type="email" id="email" name="email" class="input-field" placeholder="Email" />
+                <input type="password" id="password" name="password" class="input-field" placeholder="Password" />
+                <input type="submit" class="btn" value="login" email="login">
+                <a href="signup.html"><button type="button" class="btn">Signup</button></a>
+            </form>
+        </div>
+    </section>
+
+    <script>
+        function validateLoginForm() {
+            var email = document.getElementById("email").value;
+            var password = document.getElementById("password").value;
+
+            if (email.trim() === "" || password.trim() === "") {
+                alert("email and password are required");
+                return false;
+            }
+
+            window.open("../index.html");
+            return true;
+        }
+    </script>
+</body>
+</html>
